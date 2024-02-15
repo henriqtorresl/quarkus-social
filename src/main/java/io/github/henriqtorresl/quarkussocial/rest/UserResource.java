@@ -38,9 +38,9 @@ public class UserResource {
 
         // se existe alguma violação:
         if (!violations.isEmpty()) {
-            ResponseError responseError = ResponseError.createFromValidation(violations);
-
-            return Response.status(400).entity(responseError).build();
+            return ResponseError
+                    .createFromValidation(violations)
+                    .withSatusCode(ResponseError.UNPROCESSABLE_ENTITY_STATUS);
         }
 
         User user = new User();
@@ -51,7 +51,10 @@ public class UserResource {
 
         repository.persist(user);       // Agora eu uso o panache repository então uso o método do repository
 
-        return Response.ok(user).build();
+        return Response
+                .status(Response.Status.CREATED.getStatusCode())        // 201
+                .entity(user)
+                .build();
     }
 
     @GET
@@ -71,7 +74,7 @@ public class UserResource {
             user.setName(userData.getName());
             user.setAge(userData.getAge());
 
-            return Response.ok(user).build();
+            return Response.noContent().build();        // No content -> status 204
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -86,7 +89,7 @@ public class UserResource {
         if (user != null) {
             repository.delete(user);
 
-            return Response.ok().build();
+            return Response.noContent().build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
