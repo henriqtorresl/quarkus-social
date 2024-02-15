@@ -15,8 +15,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)         // Aqui estou dizendo que esse campo é um auto-increment
     private Long id;
+
     @Column(name = "name")     // essa anotação é opcional (ela só é obrigatória quando o nome da coluna é diferente do nome da propriedade)
     private String name;
+
     @Column(name = "age")
     private Integer age;
 
