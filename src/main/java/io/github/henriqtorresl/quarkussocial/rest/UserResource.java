@@ -3,13 +3,18 @@ package io.github.henriqtorresl.quarkussocial.rest;
 import io.github.henriqtorresl.quarkussocial.domain.model.User;
 import io.github.henriqtorresl.quarkussocial.domain.repository.UserRepository;
 import io.github.henriqtorresl.quarkussocial.rest.dto.CreateUserRequest;
+import io.github.henriqtorresl.quarkussocial.rest.dto.ResponseError;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.util.Set;
 
 @Path("/users")
 @Consumes(MediaType.APPLICATION_JSON)       // Aqui estou dizendo que vou consumir/receber objetos JSON
@@ -17,16 +22,27 @@ import jakarta.ws.rs.core.Response;
 public class UserResource {
 
     private final UserRepository repository;
+    private final Validator validator;
 
     // injeção de dependências:
-    @Inject
-    public UserResource(UserRepository repository) {
+    @Inject                     // essa annotation pode ser usada tanto no construtor quanto nas propriedades
+    public UserResource(UserRepository repository, Validator validator) {
         this.repository = repository;
+        this.validator = validator;
     }
 
     @POST
     @Transactional          // sempre que for fazer alguma operação que não seja de leitura no banco, devo colocar essa anotação
     public Response createUser(CreateUserRequest userRequest) {
+        Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(userRequest);
+
+        // se existe alguma violação:
+        if (!violations.isEmpty()) {
+            ResponseError responseError = ResponseError.createFromValidation(violations);
+
+            return Response.status(400).entity(responseError).build();
+        }
+
         User user = new User();
         user.setName(userRequest.getName());
         user.setAge(userRequest.getAge());
