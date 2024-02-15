@@ -8,7 +8,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "USERS")      // se eu não colocasse essa anotação, o Java entenderia que o nome da tabela é User (que é o nome da classe)
-public class User extends PanacheEntityBase {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)         // Aqui estou dizendo que esse campo é um auto-increment
