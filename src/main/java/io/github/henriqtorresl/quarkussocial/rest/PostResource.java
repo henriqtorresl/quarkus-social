@@ -7,6 +7,7 @@ import io.github.henriqtorresl.quarkussocial.domain.repository.UserRepository;
 import io.github.henriqtorresl.quarkussocial.rest.dto.CreatePostRequest;
 import io.github.henriqtorresl.quarkussocial.rest.dto.PostResponse;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.panache.common.Sort;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -39,7 +40,9 @@ public class PostResource {
 
         // o primeiro parametro "user" é um campo que diz respeito a minha @Entity de Post
         // eu estou procurando por posts que possuam o parametro user == ao segundo parametro user...
-        var query = repository.find("user", user);// vou procurar por posts a partir do parametro user
+        var query = repository.find("user",                              // vou procurar por posts a partir do parametro user
+                Sort.by("dateTime", Sort.Direction.Descending),         // ordenar pela data por ordem decrescente
+                user);                                                         // valor atribuido ao primeiro parametro
         var list = query.list();
 
         // convertendo para o tipo PostResponse:
