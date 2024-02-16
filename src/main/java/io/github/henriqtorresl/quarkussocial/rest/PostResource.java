@@ -2,6 +2,7 @@ package io.github.henriqtorresl.quarkussocial.rest;
 
 import io.github.henriqtorresl.quarkussocial.domain.model.Post;
 import io.github.henriqtorresl.quarkussocial.domain.model.User;
+import io.github.henriqtorresl.quarkussocial.domain.repository.FollowerRepository;
 import io.github.henriqtorresl.quarkussocial.domain.repository.PostRepository;
 import io.github.henriqtorresl.quarkussocial.domain.repository.UserRepository;
 import io.github.henriqtorresl.quarkussocial.rest.dto.CreatePostRequest;
@@ -23,19 +24,52 @@ public class PostResource {
 
     private final UserRepository userRepository;
     private final PostRepository repository;
+    private final FollowerRepository followerRepository;
 
     @Inject
-    public PostResource(UserRepository userRepository, PostRepository repository) {
+    public PostResource(
+            UserRepository userRepository,
+            PostRepository repository,
+            FollowerRepository followerRepository
+    ) {
         this.userRepository = userRepository;
         this.repository = repository;
+        this.followerRepository = followerRepository;
     }
 
     @GET
-    public Response listPosts(@PathParam("userID") Long userId) {
+    public Response listPosts(
+            @PathParam("userID") Long userId,
+            @HeaderParam("followerId") Long followerId
+    ) {
         User user = userRepository.findById(userId);
-
         if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .build();
+        }
+
+        if (followerId == null) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("You forgot the header followerId")
+                    .build();
+        }
+
+        User follower = userRepository.findById(followerId);
+        if (follower == null) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("Inexistent followerId")
+                    .build();
+        }
+
+        boolean follows = followerRepository.follows(follower, user);
+        if (!follows) { // se o usuario(follower) não segue ele(user), então não pode ver seus posts
+            return Response
+                    .status(Response.Status.FORBIDDEN)
+                    .entity("You can't see these posts")
+                    .build();
         }
 
         // o primeiro parametro "user" é um campo que diz respeito a minha @Entity de Post
@@ -50,7 +84,9 @@ public class PostResource {
                 .map( p -> PostResponse.fromEntity(p))      // tambem poderia fazer dessa forma: .map(PostResponse::fromEntity)
                 .collect(Collectors.toList());
 
-        return Response.ok(postResponseList).build();
+        return Response
+                .ok(postResponseList)
+                .build();
     }
 
     @POST
@@ -59,7 +95,9 @@ public class PostResource {
         User user = userRepository.findById(userId);
 
         if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .build();
         }
 
         Post post = new Post();
@@ -68,7 +106,9 @@ public class PostResource {
 
         repository.persist(post);
 
-        return Response.status(Response.Status.CREATED).build();
+        return Response
+                .status(Response.Status.CREATED)
+                .build();
     }
 
 }
