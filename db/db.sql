@@ -3,7 +3,7 @@ CREATE TABLE USERS (
                        id int8 not null primary key auto_increment,
                        name varchar(100) not null,
                        age integer not null
-)
+);
 
 -- Script de criação da tabela de posts:
 CREATE TABLE POSTS (
@@ -11,4 +11,11 @@ CREATE TABLE POSTS (
                        post_text varchar(150) not null,
                        date_time timestamp,
                        user_id int not null references USERS(id)
-)
+);
+
+-- Script de criação da tabela de followers:
+CREATE TABLE FOLLOWERS (
+                           id int8 not null primary key auto_increment,
+                           user_id int not null references USERS(id),
+                           follower_id int not null references USERS(id)
+);
