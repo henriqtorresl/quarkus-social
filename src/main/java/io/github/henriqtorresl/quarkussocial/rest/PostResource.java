@@ -17,7 +17,7 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.stream.Collectors;
 
-@Path("/users/{userID}/posts")
+@Path("/users/{userId}/posts")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class PostResource {
@@ -39,7 +39,7 @@ public class PostResource {
 
     @GET
     public Response listPosts(
-            @PathParam("userID") Long userId,
+            @PathParam("userId") Long userId,
             @HeaderParam("followerId") Long followerId
     ) {
         User user = userRepository.findById(userId);
@@ -91,7 +91,7 @@ public class PostResource {
 
     @POST
     @Transactional
-    public Response savePost(@PathParam("userID") Long userId, CreatePostRequest request) {
+    public Response savePost(@PathParam("userId") Long userId, CreatePostRequest request) {
         User user = userRepository.findById(userId);
 
         if (user == null) {
