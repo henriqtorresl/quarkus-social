@@ -2,11 +2,13 @@ package io.github.henriqtorresl.quarkussocial.rest;
 
 import io.github.henriqtorresl.quarkussocial.rest.dto.CreateUserRequest;
 import io.github.henriqtorresl.quarkussocial.rest.dto.ResponseError;
+import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.*;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -14,10 +16,16 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)   // Com essa antação na minha classe eu posso usar a antação de Order() nos meus metodos
 class UserResourceTest {
 
+    @TestHTTPResource("/users")     // url da api...
+    URL apiURL;
+
+    // garantindo que  metodo que testa o post vai ser executado antes do metodo que testa o list atraves da anotação @Order(1)
     @Test
     @DisplayName("Should create an user successfully")        // essa anotação especifica o que o teste faz
+    @Order(1)   // primeiro que vai ser executado
     public void createUserTest() {
         var user = new CreateUserRequest();                   // objeto que é mandado no body da requisição de post
         user.setName("Fulano");
@@ -28,7 +36,7 @@ class UserResourceTest {
                                 .contentType(ContentType.JSON)      // definindo o tipo do conteúdo
                                 .body(user)                         // passando um body pra requisição
                         .when()         // executando
-                                .post("/users")                             // verbo HTTP
+                                .post(apiURL)                             // verbo HTTP
                         .then()         // faz a verificação final
                                 .extract()
                                 .response();
@@ -43,6 +51,7 @@ class UserResourceTest {
 
     @Test
     @DisplayName("Should return error when json is not valid")
+    @Order(2)
     public void createUserValidationErrorTest() {
         var user = new CreateUserRequest();
         user.setName(null);                     // criando um objeto que não é valido
@@ -52,7 +61,7 @@ class UserResourceTest {
                         .contentType(ContentType.JSON)
                         .body(user)
                 .when()
-                        .post("/users")
+                        .post(apiURL)
                 .then()
                         .extract()
                         .response();
@@ -65,7 +74,22 @@ class UserResourceTest {
         assertNotNull(errors.get(1).get("message"));
 //        assertEquals("Age is Required", errors.get(0).get("message"));        -> Pode ser que o objeto venha trocado o name pode acabar vindo na posição 0 e ai o test iria falhar, por isso eu deixei o assertNotNull
 //        assertEquals("Name is Required", errors.get(1).get("message"));
+    }
 
+    @Test
+    @DisplayName("Should list all users")
+    @Order(3)   // garantindo que  metodo que testa o post vai ser executado antes do metodo que testa o list
+    public void listAllUsersTest() {
+        // OBS: Esse metodo não insere nenhum usuario no meu banco de test (banco em memoria), então se eu rodar esse teste isolado, ele irá falhar!
+        // Para inserir um usuário no meu banco de test eu tenho que rodar o teste do metodo POST...
+
+        given()
+                .contentType(ContentType.JSON)
+        .when()
+                .get(apiURL)
+        .then()
+                .statusCode(200)
+                .body("size()", Matchers.is(1));                 // verifica o tamanho do array de objetos do response
     }
 
 }
