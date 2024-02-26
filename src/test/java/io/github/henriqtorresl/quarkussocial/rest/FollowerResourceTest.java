@@ -145,7 +145,6 @@ class FollowerResourceTest {
         var inexistentUserId = 999;
 
         given()
-                .contentType(ContentType.JSON)
                 .pathParam("userId", inexistentUserId)
                 .queryParam("followerId", this.followerId)
         .when()
@@ -158,7 +157,6 @@ class FollowerResourceTest {
     @DisplayName("Should unfollow an user")
     public void unfollowUserTest() {
         given()
-                .contentType(ContentType.JSON)
                 .pathParam("userId", this.userId)
                 .queryParam("followerId", this.followerId)
         .when()
